@@ -1,0 +1,1 @@
+Using p5js as a PWA as per these steps > https://medium.com/p/d5b9d0a1d726
