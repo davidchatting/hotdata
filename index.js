@@ -19,17 +19,16 @@ app.get('/stress', (req, res) => {
 
 app.get('/temp', (req, res) => {
   cp.exec('vcgencmd measure_temp', (err, stdout, sterr) => {
-    if(err) {
+    if(!err) {
       console.log(err)
       res.sendStatus(500)
       return
     }
+    
     let s = stdout.trim().split('=')
     if(s.length == 2) {
-      console.log(s[0], s[1])
+      res.json({temp:s[1]})
     }
-    //temp=31.1'C
-    res.json({message:stdout})
   })
 })
 
