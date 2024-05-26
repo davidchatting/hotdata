@@ -34,5 +34,6 @@ const temp = async _ => {
   const response = await fetch('/temp');
   const data = await response.json();
 
-  tempString = data.temp
+  //tempString = data.temp
+  tempString = random()
 }
