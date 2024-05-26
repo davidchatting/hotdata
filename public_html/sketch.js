@@ -15,6 +15,7 @@ function draw() {
     fill(255);
   }
   ellipse(mouseX, mouseY, 80, 80);
+  fill(0);
   text(tempString, mouseX, mouseY)
 }
 
@@ -34,6 +35,5 @@ const temp = async _ => {
   const response = await fetch('/temp');
   const data = await response.json();
 
-  //tempString = data.temp
-  tempString = random()
+  tempString = data['temp']
 }
