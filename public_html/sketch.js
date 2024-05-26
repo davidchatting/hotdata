@@ -1,9 +1,11 @@
+let tempString = '?'
+
 function setup() {
   // make it full screen
   createCanvas(windowWidth, windowHeight); 
   background(200, 0, 0);
 
-  setInterval(tick, 1000);
+  setInterval(temp, 1000);
 }
 
 function draw() {
@@ -13,6 +15,7 @@ function draw() {
     fill(255);
   }
   ellipse(mouseX, mouseY, 80, 80);
+  text(tempString, mouseX, mouseY)
 }
 
 function touchStarted() {
@@ -25,4 +28,11 @@ const tick = async _ => {
   const response = await fetch('/tick');
   const data = await response.json();
   console.log(data);
+}
+
+const temp = async _ => {
+  const response = await fetch('/temp');
+  const data = await response.json();
+
+  tempString = data.temp
 }
