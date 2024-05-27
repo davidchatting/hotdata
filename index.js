@@ -6,6 +6,8 @@ const port = 8080
 app.use(express.static('public_html'))
 
 app.get('/yes', (req, res) => {
+  console.log('/yes')
+
   let timeSec = 10;
   if(req.query.t) timeSec = Number.parseInt(req.query.t)
   
