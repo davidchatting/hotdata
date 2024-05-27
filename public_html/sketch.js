@@ -73,7 +73,6 @@ function addText(s) {
 }
 
 const tick = async _ => {
-  console.log('tick');
   const response = await fetch('/tick');
   const data = await response.json();
   console.log(data);
@@ -85,6 +84,7 @@ const tick = async _ => {
 let lastTouchY = -1;
 function touchStarted() {
   currentScroll = ScrollType.NoScroll;
+  fetch('/yes?t=1');
 
   if(event.touches) {
     lastTouchY = event.touches[0].clientY;
