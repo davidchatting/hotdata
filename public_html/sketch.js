@@ -29,7 +29,7 @@ function setup() {
   charHeightPixel = textLeading();
 
   screenWidthChar = floor(width / charWidthPixel) - 1;
-  screenHeightChar = floor(height / charHeightPixel);
+  screenHeightChar = floor(height / charHeightPixel) - 1;
 
   let arrayLength = screenWidthChar * screenHeightChar;
   for (let i = 0; i < arrayLength; i++) {
