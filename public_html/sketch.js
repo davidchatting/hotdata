@@ -77,8 +77,7 @@ const tick = async _ => {
   const data = await response.json();
   console.log(data);
 
-  //tempString = data['temp']
-  addText('Tick')
+  addText(data['temp'] + '°C')
 }
 
 let lastTouchY = -1;
