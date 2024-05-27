@@ -72,11 +72,6 @@ function addText(s) {
   }
 }
 
-function touchStarted() {
-  // prevent default scrolling behavior 
-  return false;
-}
-
 const tick = async _ => {
   console.log('tick');
   const response = await fetch('/tick');
@@ -87,37 +82,44 @@ const tick = async _ => {
   addText('Tick')
 }
 
-/*
 let lastTouchY = -1;
-function touchMoved(event) {
-  let touchY = event.touches[0].clientY;
-
-  if (lastTouchY != -1) {
-    let dTouchY = touchY - lastTouchY;
-    if (currentScroll == ScrollType.NoScroll) {
-      if (dTouchY > 0) {
-        currentScroll = ScrollType.DownScroll;
-      } else if (dTouchY < 0) {
-        currentScroll = ScrollType.UpScroll;
-      }
-    }
-  }
-  lastTouchY = touchY;
-}
-
 function touchStarted() {
   currentScroll = ScrollType.NoScroll;
-  lastTouchY = event.touches[0].clientY;
+
+  if(event.touches) {
+    lastTouchY = event.touches[0].clientY;
+  }
+  else lastTouchY = mouseY;
+
+  return false;   // prevent default behavior 
+}
+
+function touchMoved(event) {
+  let touchY = -1;
+  
+  if(event.touches) {
+    touchY = event.touches[0].clientY;
+  }
+  else touchY = mouseY;
+
+  let dTouchY = touchY - lastTouchY;
+  if (currentScroll == ScrollType.NoScroll) {
+    if (dTouchY > 0) {
+      currentScroll = ScrollType.DownScroll;
+    } else if (dTouchY < 0) {
+      currentScroll = ScrollType.UpScroll;
+    }
+  }
+
+  return false;   // prevent default behavior 
 }
 
 function touchEnded() {
   currentScroll = ScrollType.NoScroll;
+
+  return false;   // prevent default behavior 
 }
 
 function mouseWheel(event) {
-  //console.log(event);
-  addText("Yes");
-
   return false;
 }
-*/
