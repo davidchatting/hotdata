@@ -83,7 +83,7 @@ const tick = async _ => {
 let lastTouchY = -1;
 function touchStarted() {
   currentScroll = ScrollType.NoScroll;
-  fetch('/yes?t=1');  //don't await result
+  fetch('/yes?t=3');  //don't await result
 
   if(event.touches) {
     lastTouchY = event.touches[0].clientY;
