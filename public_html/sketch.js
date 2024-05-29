@@ -40,7 +40,7 @@ function setup() {
   charBuffer[arrayLength -1] = '+'
   index = arrayLength
 
-  setupMask()
+  //setupMask()
   setInterval(tick, 1000)
 
   //addAsciiArtAtXY(3,3,'***\n***\n***')
