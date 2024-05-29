@@ -3,35 +3,36 @@ const ScrollType = {
   UpScroll: 1,
   DownScroll: 2,
 };
-let currentScroll = ScrollType.NoScroll;
+let currentScroll = ScrollType.NoScroll
 
 let font;
 function preload() {
-  font = loadFont("SpaceMono-Regular.ttf");
+  font = loadFont("SpaceMono-Regular.ttf")
 }
-let fontHeightPixel = 20;
+let fontHeightPixel = 20
 
-let charHeightPixel, charWidthPixel;
-let screenWidthChar, screenHeightChar;
+let charHeightPixel, charWidthPixel
+let screenWidthChar, screenHeightChar
 
-let index = 0;
-let charBuffer = [];
+let index = 0
+let charBuffer = []
+let maskBuffer = []
 
 function setup() {
   frameRate(30)
-  createCanvas(windowWidth, windowHeight);   // make it full screen
+  createCanvas(windowWidth, windowHeight) // make it full screen
   
-  textFont(font);
-  textSize(fontHeightPixel);
+  textFont(font)
+  textSize(fontHeightPixel)
 
   //This only works because this is a monospaced typeface
-  charWidthPixel = font.textBounds("XX", 0, 0).w - font.textBounds("X", 0, 0).w;
-  charHeightPixel = textLeading();
+  charWidthPixel = font.textBounds("XX", 0, 0).w - font.textBounds("X", 0, 0).w
+  charHeightPixel = textLeading()
 
-  screenWidthChar = ceil(width / charWidthPixel) - 1;
-  screenHeightChar = ceil(height / charHeightPixel) - 1;
+  screenWidthChar = ceil(width / charWidthPixel) - 1
+  screenHeightChar = ceil(height / charHeightPixel) - 1
 
-  let arrayLength = screenWidthChar * screenHeightChar;
+  let arrayLength = screenWidthChar * screenHeightChar
   for (let i = 0; i < arrayLength; i++) {
     charBuffer[i] = random(['-', 'x', 'o'])
   }
@@ -39,11 +40,17 @@ function setup() {
   charBuffer[arrayLength -1] = '+'
   index = arrayLength
 
-  console.log(screenWidthChar, screenHeightChar)
+  setupMask()
+  setInterval(tick, 1000)
 
-  setInterval(tick, 1000);
+  //addAsciiArtAtXY(3,3,'***\n***\n***')
+}
 
-  addAsciiArtAtXY(3,3,'***\n***\n***')
+function setupMask() {
+  let arrayLength = screenWidthChar * screenHeightChar
+  for (let i = 0; i < arrayLength; i++) {
+    maskBuffer[i] = (i%5==0)?'0':'1'
+  }
 }
 
 function draw() {
@@ -52,7 +59,7 @@ function draw() {
   stroke(200)
 
   if (currentScroll == ScrollType.UpScroll) {
-    addText("Yes")
+    appendText("Yes")
   }
 
   let s = join(charBuffer, "")
@@ -62,13 +69,19 @@ function draw() {
 
 function addTextAtIndex(s,i) {
   //Place the text in the charBuffer:
+  let skp = 0
   for (let n = 0; n < s.length; ++n) {
-    charBuffer[i+n] = s[n]
+    while(maskBuffer[i+n+skp]=='0') {
+      charBuffer[i+n+skp] = ' '
+      skp++
+    }
+
+    charBuffer[i+n+skp] = s[n]
   }
-  return (i + s.length)
+  return (i + s.length + skp)
 }
 
-function addText(s) {
+function appendText(s) {
   //Remove top line if scrolling too far:
   if (index >= screenWidthChar * screenHeightChar) {
     removeText(screenWidthChar)
@@ -99,13 +112,15 @@ function removeText(numOfChars) {
 const tick = async _ => {
   const response = await fetch('/tick');
   const data = await response.json();
-  //console.log(data);
 
   let temp = 0
   if(data['temp']) temp = data['temp']
-  addText(temp + '°C')
+  appendText(temp + '°C')
 }
 
+
+//Touch functions
+//===============
 let lastTouchY = -1
 let firstTouchY = -1
 function touchStarted() {
