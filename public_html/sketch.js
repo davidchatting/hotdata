@@ -16,7 +16,6 @@ let screenWidthChar, screenHeightChar;
 
 let index = 0;
 let charBuffer = [];
-let track = [];
 
 function setup() {
   frameRate(30)
@@ -43,6 +42,8 @@ function setup() {
   console.log(screenWidthChar, screenHeightChar)
 
   setInterval(tick, 1000);
+
+  addAsciiArtAtXY(3,3,'***\n***\n***')
 }
 
 function draw() {
@@ -51,12 +52,20 @@ function draw() {
   stroke(200)
 
   if (currentScroll == ScrollType.UpScroll) {
-    addText("Yes");
+    addText("Yes")
   }
 
-  let s = join(charBuffer, "");
-  textWrap(CHAR);
-  text(s, 0, charHeightPixel, width, height);
+  let s = join(charBuffer, "")
+  textWrap(CHAR)
+  text(s, 0, charHeightPixel, width, height)
+}
+
+function addTextAtIndex(s,i) {
+  //Place the text in the charBuffer:
+  for (let n = 0; n < s.length; ++n) {
+    charBuffer[i+n] = s[n]
+  }
+  return (i + s.length)
 }
 
 function addText(s) {
@@ -64,12 +73,19 @@ function addText(s) {
   if (index >= screenWidthChar * screenHeightChar) {
     removeText(screenWidthChar)
   }
+  index = addTextAtIndex(s, index)
+}
 
-  //Place the text in the charBuffer (use the track if available)
-  for (let i = 0; i < s.length; ++i) {
-    let n = track.length > 0 ? track[index] : index;
-    charBuffer[n] = s[i];
-    ++index;
+function addAsciiArtAtXY(x, y, s) {
+  let i = (y * screenWidthChar) + x
+  addAsciiArtAtIndex(i,s)
+}
+
+function addAsciiArtAtIndex(i, s) {
+  let lines = split(s, '\n');
+  for (let n = 0; n < lines.length; ++n) {
+    addTextAtIndex(lines[n],i)
+    i += screenWidthChar
   }
 }
 
