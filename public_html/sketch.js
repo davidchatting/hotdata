@@ -9,7 +9,7 @@ let font;
 function preload() {
   font = loadFont("SpaceMono-Regular.ttf");
 }
-let fontHeightPixel = 30;
+let fontHeightPixel = 20;
 
 let charHeightPixel, charWidthPixel;
 let screenWidthChar, screenHeightChar;
@@ -19,22 +19,28 @@ let charBuffer = [];
 let track = [];
 
 function setup() {
+  frameRate(30)
   createCanvas(windowWidth, windowHeight);   // make it full screen
   
   textFont(font);
   textSize(fontHeightPixel);
 
-  let charBounds = font.textBounds("XX", 0, 0);
-  charWidthPixel = ceil(charBounds.w) / 2;
+  //This only works because this is a monospaced typeface
+  charWidthPixel = font.textBounds("XX", 0, 0).w - font.textBounds("X", 0, 0).w;
   charHeightPixel = textLeading();
 
-  screenWidthChar = floor(width / charWidthPixel) - 1;
-  screenHeightChar = floor(height / charHeightPixel) - 1;
+  screenWidthChar = ceil(width / charWidthPixel) - 1;
+  screenHeightChar = ceil(height / charHeightPixel) - 1;
 
   let arrayLength = screenWidthChar * screenHeightChar;
   for (let i = 0; i < arrayLength; i++) {
-    charBuffer[i] = "-";
+    charBuffer[i] = random(['-', 'x', 'o'])
   }
+  charBuffer[0] = '+'
+  charBuffer[arrayLength -1] = '+'
+  index = arrayLength
+
+  console.log(screenWidthChar, screenHeightChar)
 
   setInterval(tick, 1000);
 }
@@ -44,9 +50,7 @@ function draw() {
   fill(200)
   stroke(200)
 
-  if (currentScroll == ScrollType.DownScroll) {
-  }
-  else if (currentScroll == ScrollType.UpScroll) {
+  if (currentScroll == ScrollType.UpScroll) {
     addText("Yes");
   }
 
@@ -58,10 +62,7 @@ function draw() {
 function addText(s) {
   //Remove top line if scrolling too far:
   if (index >= screenWidthChar * screenHeightChar) {
-    for (let n = 0; n < screenWidthChar; ++n) {
-      charBuffer.shift();
-      index--;
-    }
+    removeText(screenWidthChar)
   }
 
   //Place the text in the charBuffer (use the track if available)
@@ -72,43 +73,54 @@ function addText(s) {
   }
 }
 
+function removeText(numOfChars) {
+  for (let n = 0; n < numOfChars; ++n) {
+    charBuffer.shift()
+  }
+  index -= numOfChars
+}
+
 const tick = async _ => {
   const response = await fetch('/tick');
   const data = await response.json();
-  console.log(data);
+  //console.log(data);
 
-  addText(data['temp'] + '°C')
+  let temp = 0
+  if(data['temp']) temp = data['temp']
+  addText(temp + '°C')
 }
 
-let lastTouchY = -1;
+let lastTouchY = -1
+let firstTouchY = -1
 function touchStarted() {
   currentScroll = ScrollType.NoScroll;
   fetch('/yes?t=3');  //don't await result
 
-  if(event.touches) {
-    lastTouchY = event.touches[0].clientY;
-  }
-  else lastTouchY = mouseY;
+  firstTouchY = getTouchXY()[1]
+  lastTouchY = firstTouchY
 
   return false; //prevent default behavior 
 }
 
 function touchMoved(event) {
-  let touchY = -1;
-  
-  if(event.touches) {
-    touchY = event.touches[0].clientY;
-  }
-  else touchY = mouseY;
+  let touchY = getTouchXY()[1]
 
-  let dTouchY = touchY - lastTouchY;
-  if (currentScroll == ScrollType.NoScroll) {
-    if (dTouchY > 0) {
-      currentScroll = ScrollType.DownScroll;
-    } else if (dTouchY < 0) {
-      currentScroll = ScrollType.UpScroll;
+  let d = touchY - lastTouchY
+  if (d > 0) {
+    currentScroll = ScrollType.DownScroll;
+  } else if (d < 0) {
+    currentScroll = ScrollType.UpScroll;
+  }
+
+  if (currentScroll == ScrollType.DownScroll) {
+  }
+  else if (currentScroll == ScrollType.UpScroll) {
+    if(abs(touchY - firstTouchY) > charHeightPixel) {
+      removeText(screenWidthChar)
+      firstTouchY = touchY
     }
   }
+  lastTouchY = touchY
 
   return false;   // prevent default behavior 
 }
@@ -117,6 +129,13 @@ function touchEnded() {
   currentScroll = ScrollType.NoScroll;
 
   return false;   // prevent default behavior 
+}
+
+function getTouchXY(){
+  if(event.touches && event.touches.length > 0) {
+    return([event.touches[0].clientX, event.touches[0].clientY])
+  }
+  else return([mouseX,mouseY])
 }
 
 function mouseWheel(event) {
