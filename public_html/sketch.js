@@ -17,6 +17,7 @@ let screenWidthChar, screenHeightChar
 let index = 0
 let charBuffer = []
 let maskBuffer = []
+let lineOffsets = [3,4,5,4,3,2,1,0,1,2,3,2]
 
 function setup() {
   frameRate(30)
@@ -59,12 +60,31 @@ function draw() {
   stroke(200)
 
   if (currentScroll == ScrollType.UpScroll) {
-    appendText("Yes")
+    for(let n=0; n<50; ++n) appendText("Yes")
   }
 
+  //Create a string from the charBuffer with newline characters inserted
   let s = join(charBuffer, "")
-  textWrap(CHAR)
+  let i = screenWidthChar
+  let n = 0
+  while(i < s.length) {
+    let offset = lineOffsets[n%lineOffsets.length];
+    s = s.slice(0, i) + '\n' + makeWhiteSpace(offset) + s.slice(i)  //makeWhiteSpace(offset) //+ '\n'
+    i = i + 1 + offset + screenWidthChar //+ 1
+    ++n
+  }
+
+  textWrap(CHAR);
   text(s, 0, charHeightPixel, width, height)
+}
+
+function makeWhiteSpace(n) {
+  let s = ''
+  while (n>0) {
+    s+='_'
+    n--
+  }
+  return s
 }
 
 function addTextAtIndex(s,i) {
@@ -115,7 +135,7 @@ const tick = async _ => {
 
   let temp = 0
   if(data['temp']) temp = data['temp']
-  appendText(temp + '°C')
+  appendText('_' + temp + '°C' + '_')
 }
 
 
