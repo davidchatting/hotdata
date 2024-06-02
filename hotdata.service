@@ -1,0 +1,14 @@
+[Unit]
+Description=hotdata
+Documentation=https://github.com/davidchatting/hotdata
+After=network.target
+
+[Service]
+Type=simple
+User=node
+ExecStart=/usr/bin/node /home/pi/hotdata/index.js
+WorkingDirectory=/home/pi/hotdata
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
