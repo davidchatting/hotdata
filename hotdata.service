@@ -5,7 +5,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=node
+User=pi
 ExecStart=/usr/bin/node /home/pi/hotdata/index.js
 WorkingDirectory=/home/pi/hotdata
 Restart=on-failure
