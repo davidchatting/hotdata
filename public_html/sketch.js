@@ -34,8 +34,12 @@ function setup() {
   screenHeightChar = ceil(height / charHeightPixel) - 1
 
   let arrayLength = screenWidthChar * screenHeightChar
-  for (let i = 0; i < arrayLength; i++) {
-    charBuffer[i] = random(['-', 'x', 'o'])
+  for (let y = 0; y < screenHeightChar; y++) {
+    let lineLength = screenWidthChar  //random(screenWidthChar);
+    for (let x = 0; x < screenWidthChar; x++) {
+      if(x<lineLength) charBuffer[(y*screenWidthChar)+x] = random(['-', 'x', 'o'])
+      //else charBuffer[(y*screenWidthChar)+x] = '.'
+    }
   }
   charBuffer[0] = '+'
   charBuffer[arrayLength -1] = '+'
@@ -68,13 +72,13 @@ function draw() {
   let i = screenWidthChar
   let n = 0
   while(i < s.length) {
-    let offset = lineOffsets[n%lineOffsets.length];
-    s = s.slice(0, i) + '\n' + makeWhiteSpace(offset) + s.slice(i)  //makeWhiteSpace(offset) //+ '\n'
+    let offset = 0  //lineOffsets[n%lineOffsets.length];
+    s = s.slice(0, i) + '\n' + s.slice(i)  //makeWhiteSpace(offset) //+ '\n'
     i = i + 1 + offset + screenWidthChar //+ 1
     ++n
   }
 
-  textWrap(CHAR);
+  textWrap(WORD);
   text(s, 0, charHeightPixel, width, height)
 }
 
