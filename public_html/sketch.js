@@ -14,10 +14,10 @@ let fontHeightPixel = 20
 let charHeightPixel, charWidthPixel
 let screenWidthChar, screenHeightChar
 
-let index = 0
-let charBuffer = []
-let maskBuffer = []
-let lineOffsets = [3,4,5,4,3,2,1,0,1,2,3,2]
+let lines
+let lineOffsets
+
+let amplitude = 0
 
 function setup() {
   frameRate(30)
@@ -33,29 +33,15 @@ function setup() {
   screenWidthChar = ceil(width / charWidthPixel) - 1
   screenHeightChar = ceil(height / charHeightPixel) - 1
 
-  let arrayLength = screenWidthChar * screenHeightChar
-  for (let y = 0; y < screenHeightChar; y++) {
-    let lineLength = screenWidthChar  //random(screenWidthChar);
-    for (let x = 0; x < screenWidthChar; x++) {
-      if(x<lineLength) charBuffer[(y*screenWidthChar)+x] = random(['-', 'x', 'o'])
-      //else charBuffer[(y*screenWidthChar)+x] = '.'
-    }
+  lines = new Array(screenHeightChar)
+  lineOffsets = new Array(lines.length);
+  for(let i=0;i<lineOffsets.length;++i) {
+        lineOffsets[i] = 0
   }
-  charBuffer[0] = '+'
-  charBuffer[arrayLength -1] = '+'
-  index = arrayLength
-
-  //setupMask()
-  setInterval(tick, 1000)
-
-  //addAsciiArtAtXY(3,3,'***\n***\n***')
-}
-
-function setupMask() {
-  let arrayLength = screenWidthChar * screenHeightChar
-  for (let i = 0; i < arrayLength; i++) {
-    maskBuffer[i] = (i%5==0)?'0':'1'
-  }
+  //lines[i] = random(['basic','garlic','captivate','berry','toast','vigorous','stereotype','salvation','director','expansion','bad','exact','sit','lump','hill'])  //['X','o','.'])
+  
+  setInterval(tick, 3000)
+  addLine('hello')
 }
 
 function draw() {
@@ -63,83 +49,61 @@ function draw() {
   fill(200)
   stroke(200)
 
-  if (currentScroll == ScrollType.UpScroll) {
-    for(let n=0; n<50; ++n) appendText("Yes")
-  }
-
-  //Create a string from the charBuffer with newline characters inserted
-  let s = join(charBuffer, "")
-  let i = screenWidthChar
-  let n = 0
-  while(i < s.length) {
-    let offset = 0  //lineOffsets[n%lineOffsets.length];
-    s = s.slice(0, i) + '\n' + s.slice(i)  //makeWhiteSpace(offset) //+ '\n'
-    i = i + 1 + offset + screenWidthChar //+ 1
-    ++n
-  }
-
-  textWrap(WORD);
-  text(s, 0, charHeightPixel, width, height)
+  calcWave();
+  drawLines();
+  
+  amplitude = map(temperature,30,60,0,100)
 }
 
-function makeWhiteSpace(n) {
-  let s = ''
-  while (n>0) {
-    s+='_'
-    n--
+function calcWave() {
+  for (let i = lineOffsets.length-1; i > 0; i--) {
+    lineOffsets[i] = lineOffsets[i-1]
   }
-  return s
+  lineOffsets[0] = amplitude * sin(frameCount * 0.15)
 }
 
-function addTextAtIndex(s,i) {
-  //Place the text in the charBuffer:
-  let skp = 0
-  for (let n = 0; n < s.length; ++n) {
-    while(maskBuffer[i+n+skp]=='0') {
-      charBuffer[i+n+skp] = ' '
-      skp++
+function drawLines() {
+  noStroke();
+  fill(255);
+  for (let i = 0; i < lines.length; i++) {
+    let x = lineOffsets[i]
+    let y = (i * charHeightPixel) + charHeightPixel
+    
+    if(lines[i]) {
+      text(lines[i], (width/2)+x, y)
     }
-
-    charBuffer[i+n+skp] = s[n]
   }
-  return (i + s.length + skp)
+}
+
+function addLine(s) {
+  while(lines.length > screenHeightChar) lines.shift()
+  lines.push(s)
 }
 
 function appendText(s) {
-  //Remove top line if scrolling too far:
-  if (index >= screenWidthChar * screenHeightChar) {
-    removeText(screenWidthChar)
-  }
-  index = addTextAtIndex(s, index)
-}
-
-function addAsciiArtAtXY(x, y, s) {
-  let i = (y * screenWidthChar) + x
-  addAsciiArtAtIndex(i,s)
-}
-
-function addAsciiArtAtIndex(i, s) {
-  let lines = split(s, '\n');
-  for (let n = 0; n < lines.length; ++n) {
-    addTextAtIndex(lines[n],i)
-    i += screenWidthChar
-  }
+  // //Remove top line if scrolling too far:
+  // if (index >= screenWidthChar * screenHeightChar) {
+  //   removeText(screenWidthChar)
+  // }
+  // index = addTextAtIndex(s, index)
 }
 
 function removeText(numOfChars) {
-  for (let n = 0; n < numOfChars; ++n) {
-    charBuffer.shift()
-  }
-  index -= numOfChars
+  // for (let n = 0; n < numOfChars; ++n) {
+  //   charBuffer.shift()
+  // }
+  // index -= numOfChars
 }
 
+let temperature = 40
 const tick = async _ => {
   const response = await fetch('/tick');
   const data = await response.json();
 
-  let temp = 0
+  let dt = random(0,4)
+  let temp = int(temperature - 2 + dt)
   if(data['temp']) temp = data['temp']
-  appendText('_' + temp + '°C' + '_')
+  addLine('_' + temp + '°C' + '_')
 }
 
 
@@ -171,7 +135,8 @@ function touchMoved(event) {
   }
   else if (currentScroll == ScrollType.UpScroll) {
     if(abs(touchY - firstTouchY) > charHeightPixel) {
-      removeText(screenWidthChar)
+      //removeText(screenWidthChar)
+      addLine('yes.')
       firstTouchY = touchY
     }
   }
@@ -182,6 +147,7 @@ function touchMoved(event) {
 
 function touchEnded() {
   currentScroll = ScrollType.NoScroll;
+  addLine('no.')
 
   return false;   // prevent default behavior 
 }
