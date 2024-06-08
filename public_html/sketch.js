@@ -22,12 +22,16 @@ let scrollCounter = 0
 let clickCounter = 0
 let userWork = 0
 const workRateInterval = 500
+const stressInterval = 5000
 
-const targetAmbientTemperature = 48
-let serverOnline = undefined
 let serverTemperature = 0
+const targetAmbientTemperature = 48
+const userWorkThresholdForFan = 0.2
+
+let serverOnline = undefined
 
 function setup() {
+  console.log('Hot Data')
   frameRate(30)
   createCanvas(windowWidth, windowHeight) // make it full screen
   
@@ -50,18 +54,21 @@ function setup() {
 
   setInterval(tick, 5000)
   setInterval(measureUserWork, workRateInterval)
+  setInterval(stress, stressInterval)
 }
 
 function draw() {
+  amplitude = (amplitude * 0.8) + (0.2 * map(userWork,0,1,0,width * 0.5 * 0.75))
+  calcWave();
+
   background(20)
   fill(200)
   stroke(200)
 
-  calcWave();
-  drawLines();
-  
-  //amplitude = map(temperature,40,50,0,100)
-  amplitude = (amplitude * 0.8) + (0.2 * map(userWork,0,1,0,100))
+  push()
+    translate(0, 0)
+    drawLines()
+  pop()
 }
 
 function calcWave() {
@@ -100,13 +107,6 @@ function appendText(s) {
   // index = addTextAtIndex(s, index)
 }
 
-function removeText(numOfChars) {
-  // for (let n = 0; n < numOfChars; ++n) {
-  //   charBuffer.shift()
-  // }
-  // index -= numOfChars
-}
-
 let temperature = 40
 const tick = async _ => {
   const response = await fetch('/tick')
@@ -136,10 +136,23 @@ function measureUserWork() {
   let w = max(scrollCounter/workRateInterval, (clickCounter*50)/workRateInterval)
 
   userWork = (0.8 * userWork) + (0.2 * w)
+  userWork = (userWork > 0.01) ? userWork : 0
   scrollCounter = 0
   clickCounter = 0
 }
 
+function stress() {
+  console.log('stress')
+
+  let url = '/stress?'
+
+  if(serverTemperature < targetAmbientTemperature){
+    url += 't='+(stressInterval/1000)+'&'
+  }
+  url += 'fan=' + (userWork > userWorkThresholdForFan)
+  console.log(url)
+  fetch(url)  //don't await result
+}
 
 //Touch functions
 //===============
@@ -147,7 +160,6 @@ let lastTouchY = -1
 let firstTouchY = -1
 function touchStarted() {
   currentScroll = ScrollType.NoScroll;
-  //fetch('/yes?t=3');  //don't await result
 
   firstTouchY = getTouchXY()[1]
   lastTouchY = firstTouchY
@@ -171,7 +183,6 @@ function touchMoved(event) {
   }
   else if (currentScroll == ScrollType.UpScroll) {
     if(abs(touchY - firstTouchY) > charHeightPixel) {
-      //removeText(screenWidthChar)
       addLine('yes.')
       firstTouchY = touchY
     }
