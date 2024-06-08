@@ -18,6 +18,14 @@ let lines
 let lineOffsets
 
 let amplitude = 0
+let scrollCounter = 0
+let clickCounter = 0
+let userWork = 0
+const workRateInterval = 500
+
+const targetAmbientTemperature = 48
+let serverOnline = undefined
+let serverTemperature = 0
 
 function setup() {
   frameRate(30)
@@ -33,15 +41,15 @@ function setup() {
   screenWidthChar = ceil(width / charWidthPixel) - 1
   screenHeightChar = ceil(height / charHeightPixel) - 1
 
-  lines = new Array(screenHeightChar)
-  lineOffsets = new Array(lines.length);
+  lines = []
+  lineOffsets = []
   for(let i=0;i<lineOffsets.length;++i) {
         lineOffsets[i] = 0
   }
-  //lines[i] = random(['basic','garlic','captivate','berry','toast','vigorous','stereotype','salvation','director','expansion','bad','exact','sit','lump','hill'])  //['X','o','.'])
-  
-  setInterval(tick, 3000)
   addLine('hello')
+
+  setInterval(tick, 5000)
+  setInterval(measureUserWork, workRateInterval)
 }
 
 function draw() {
@@ -52,11 +60,12 @@ function draw() {
   calcWave();
   drawLines();
   
-  amplitude = map(temperature,30,60,0,100)
+  //amplitude = map(temperature,40,50,0,100)
+  amplitude = (amplitude * 0.8) + (0.2 * map(userWork,0,1,0,100))
 }
 
 function calcWave() {
-  for (let i = lineOffsets.length-1; i > 0; i--) {
+  for (let i = screenHeightChar-1; i > 0; i--) {
     lineOffsets[i] = lineOffsets[i-1]
   }
   lineOffsets[0] = amplitude * sin(frameCount * 0.15)
@@ -65,9 +74,12 @@ function calcWave() {
 function drawLines() {
   noStroke();
   fill(255);
+  textAlign(CENTER);
+
+  let firstLineY = charHeightPixel + (screenHeightChar - lines.length) * charHeightPixel
   for (let i = 0; i < lines.length; i++) {
     let x = lineOffsets[i]
-    let y = (i * charHeightPixel) + charHeightPixel
+    let y = firstLineY + (i * charHeightPixel)
     
     if(lines[i]) {
       text(lines[i], (width/2)+x, y)
@@ -76,7 +88,7 @@ function drawLines() {
 }
 
 function addLine(s) {
-  while(lines.length > screenHeightChar) lines.shift()
+  while(lines.length > screenHeightChar - 1) lines.shift()
   lines.push(s)
 }
 
@@ -97,13 +109,35 @@ function removeText(numOfChars) {
 
 let temperature = 40
 const tick = async _ => {
-  const response = await fetch('/tick');
-  const data = await response.json();
+  const response = await fetch('/tick')
+  .then((response) => {
+    if(response.ok) {
+      setServerStatus(true)
+      const data = response.json()
+      if(data['temp']) serverTemperature = data['temp']
+      addLine('_' + serverTemperature + '°C' + '_')
+    }
+    else setServerStatus(false)
+  })
+  .catch((error) => {
+    setServerStatus(false)
+  })
+}
 
-  let dt = random(0,4)
-  let temp = int(temperature - 2 + dt)
-  if(data['temp']) temp = data['temp']
-  addLine('_' + temp + '°C' + '_')
+function setServerStatus(s) {
+  if(serverOnline!=s) {
+    if(s) addLine('server online')
+    else addLine('server offline')
+    serverOnline = s
+  }
+}
+
+function measureUserWork() {
+  let w = max(scrollCounter/workRateInterval, (clickCounter*50)/workRateInterval)
+
+  userWork = (0.8 * userWork) + (0.2 * w)
+  scrollCounter = 0
+  clickCounter = 0
 }
 
 
@@ -113,7 +147,7 @@ let lastTouchY = -1
 let firstTouchY = -1
 function touchStarted() {
   currentScroll = ScrollType.NoScroll;
-  fetch('/yes?t=3');  //don't await result
+  //fetch('/yes?t=3');  //don't await result
 
   firstTouchY = getTouchXY()[1]
   lastTouchY = firstTouchY
@@ -125,6 +159,8 @@ function touchMoved(event) {
   let touchY = getTouchXY()[1]
 
   let d = touchY - lastTouchY
+  scrollCounter += abs(d)
+
   if (d > 0) {
     currentScroll = ScrollType.DownScroll;
   } else if (d < 0) {
@@ -147,7 +183,13 @@ function touchMoved(event) {
 
 function touchEnded() {
   currentScroll = ScrollType.NoScroll;
-  addLine('no.')
+  let touchY = getTouchXY()[1]
+  let d = touchY - firstTouchY
+  if (d == 0) {
+    clickCounter++
+    addLine('yes.')
+  } 
+  else addLine('no.')
 
   return false;   // prevent default behavior 
 }
