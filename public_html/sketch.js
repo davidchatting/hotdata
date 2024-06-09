@@ -108,10 +108,10 @@ function addLine(s) {
 
 const tick = async _ => {
   const response = await fetch('/tick')
-  .then((response) => {
+  .then(async (response) => {
     if(response.ok) {
       setServerStatus(true)
-      const data = response.json()
+      const data = await response.json()
       console.log(data)
       if(data['temp']) serverTemperature = data['temp']
       addTemperatureLine(serverTemperature)
