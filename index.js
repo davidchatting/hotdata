@@ -5,7 +5,7 @@ const cp = require('child_process')
 const port = 8080
 
 const Gpio = require('onoff').Gpio;
-const fanGPIO = new Gpio(4, 'out');
+const fanGPIO = new Gpio(516, 'out'); //516 = GPIO4
 
 app.use(express.static('public_html'))
 
