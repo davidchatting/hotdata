@@ -106,14 +106,6 @@ function addLine(s) {
   lines.push(s)
 }
 
-function appendText(s) {
-  // //Remove top line if scrolling too far:
-  // if (index >= screenWidthChar * screenHeightChar) {
-  //   removeText(screenWidthChar)
-  // }
-  // index = addTextAtIndex(s, index)
-}
-
 const tick = async _ => {
   const response = await fetch('/tick')
   .then((response) => {
