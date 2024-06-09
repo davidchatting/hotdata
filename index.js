@@ -14,7 +14,7 @@ app.get('/stress', (req, res) => {
 
   let fanActive = false
   if(req.query.fan) fanActive = (req.query.fan == 'true')
-  fanGPIO.writeSync(fanActive ? 1 : 0)
+  fanGPIO.writeSync(fanActive)
 
   if(req.query.t) {
     let timeSec = Number.parseInt(req.query.t)
