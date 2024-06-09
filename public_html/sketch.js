@@ -50,7 +50,7 @@ function setup() {
   for(let i=0;i<lineOffsets.length;++i) {
         lineOffsets[i] = 0
   }
-  addLine('hello')
+  addLine('tHELLO')
 
   setInterval(tick, 5000)
   setInterval(measureUserWork, workRateInterval)
@@ -58,7 +58,7 @@ function setup() {
 }
 
 function draw() {
-  amplitude = (amplitude * 0.8) + (0.2 * map(userWork,0,1,0,width * 0.5 * 0.75))
+  amplitude = (amplitude * 0.8) + (0.2 * map(userWork,0,1,0,width * 0.5 * 0.5))
   calcWave();
 
   background(20)
@@ -88,8 +88,15 @@ function drawLines() {
     let x = lineOffsets[i]
     let y = firstLineY + (i * charHeightPixel)
     
-    if(lines[i]) {
-      text(lines[i], (width/2)+x, y)
+    let s = lines[i]
+    if(s) {
+      if(s.startsWith('t')) {
+        
+        fill(255, 71, 76)
+        s = s.substring(1)
+      }
+      else fill(255,255,255)
+      text(s, (width/2)+x, y)
     }
   }
 }
@@ -107,7 +114,6 @@ function appendText(s) {
   // index = addTextAtIndex(s, index)
 }
 
-let temperature = 40
 const tick = async _ => {
   const response = await fetch('/tick')
   .then((response) => {
@@ -115,7 +121,7 @@ const tick = async _ => {
       setServerStatus(true)
       const data = response.json()
       if(data['temp']) serverTemperature = data['temp']
-      addLine('_' + serverTemperature + '°C' + '_')
+      addTemperatureLine(serverTemperature)
     }
     else setServerStatus(false)
   })
@@ -124,10 +130,20 @@ const tick = async _ => {
   })
 }
 
+function addTemperatureLine() {
+  let prefix = (random(100) > 40 && userWork > 0) ? 'SERVER TEMP. ' : ''
+  addLine('t' + prefix + serverTemperature + '°C')
+
+  if(userWork == 0) {
+    let arrows = '^^^^^^^'
+    addLine(arrows.substring(int(random(arrows.length))));
+  }
+}
+
 function setServerStatus(s) {
   if(serverOnline!=s) {
-    if(s) addLine('server online')
-    else addLine('server offline')
+    if(s) addLine('tSERVER ONLINE')
+    else addLine('tSERVER OFFLINE')
     serverOnline = s
   }
 }
@@ -142,15 +158,13 @@ function measureUserWork() {
 }
 
 function stress() {
-  console.log('stress')
-
   let url = '/stress?'
+  let fan = userWork > userWorkThresholdForFan
 
-  if(serverTemperature < targetAmbientTemperature){
+  if(serverTemperature < targetAmbientTemperature || fan){
     url += 't='+(stressInterval/1000)+'&'
   }
-  url += 'fan=' + (userWork > userWorkThresholdForFan)
-  console.log(url)
+  url += 'fan=' + fan
   fetch(url)  //don't await result
 }
 
@@ -171,7 +185,7 @@ function touchMoved(event) {
   let touchY = getTouchXY()[1]
 
   let d = touchY - lastTouchY
-  scrollCounter += abs(d)
+  if(d<0) scrollCounter += abs(d) //only scroll up
 
   if (d > 0) {
     currentScroll = ScrollType.DownScroll;
@@ -183,7 +197,7 @@ function touchMoved(event) {
   }
   else if (currentScroll == ScrollType.UpScroll) {
     if(abs(touchY - firstTouchY) > charHeightPixel) {
-      addLine('yes.')
+      addYes()
       firstTouchY = touchY
     }
   }
@@ -192,15 +206,30 @@ function touchMoved(event) {
   return false;   // prevent default behavior 
 }
 
+function addYes() {
+  string1 = randomDataString(5)
+  string2 = dataString(5 - string1.length)
+  addLine(string1 + 'Yes' + string2)
+}
+
+function dataString(length) {
+  let string = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+  return(string.substring(0,length))
+}
+
+function randomDataString(maxLength) {
+  return dataString(random(maxLength))
+}
+
 function touchEnded() {
   currentScroll = ScrollType.NoScroll;
   let touchY = getTouchXY()[1]
   let d = touchY - firstTouchY
   if (d == 0) {
     clickCounter++
-    addLine('yes.')
+    addYes()
   } 
-  else addLine('no.')
+  else addLine('~~~~~No.')
 
   return false;   // prevent default behavior 
 }
