@@ -4,9 +4,6 @@ const app = express()
 const cp = require('child_process')
 const port = 8080
 
-const Gpio = require('onoff').Gpio;
-const fanGPIO = new Gpio(516, 'out'); //516 = GPIO4
-
 app.use(express.static('public_html'))
 
 app.get('/stress', (req, res) => {
@@ -14,7 +11,7 @@ app.get('/stress', (req, res) => {
 
   let fanActive = false
   if(req.query.fan) fanActive = (req.query.fan == 'true')
-  fanGPIO.writeSync(fanActive)
+  setFan(fanActive)
 
   if(req.query.t) {
     let timeSec = Number.parseInt(req.query.t)
@@ -25,6 +22,11 @@ app.get('/stress', (req, res) => {
 
   res.sendStatus(200)
 })
+
+function setFan(value) {
+  let command = 'raspi-gpio set 4 ' + (value ? 'dh' : 'dl')
+  cp.exec(command, (err, stdout, sterr) => {})
+}
 
 app.get('/tick', (req, res) => {
   let result = {tock:true}
