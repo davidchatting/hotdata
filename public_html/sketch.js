@@ -112,6 +112,7 @@ const tick = async _ => {
     if(response.ok) {
       setServerStatus(true)
       const data = response.json()
+      console.log(data)
       if(data['temp']) serverTemperature = data['temp']
       addTemperatureLine(serverTemperature)
     }
