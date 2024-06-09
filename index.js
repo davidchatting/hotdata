@@ -1,7 +1,11 @@
 const express = require('express')
 const app = express()
+
 const cp = require('child_process')
 const port = 8080
+
+const Gpio = require('onoff').Gpio;
+const fanGPIO = new Gpio(4, 'out');
 
 app.use(express.static('public_html'))
 
@@ -10,7 +14,7 @@ app.get('/stress', (req, res) => {
 
   let fanActive = false
   if(req.query.fan) fanActive = (req.query.fan == 'true')
-  console.log('fanActive', fanActive)
+  fanGPIO.writeSync(fanActive ? 1 : 0)
 
   if(req.query.t) {
     let timeSec = Number.parseInt(req.query.t)
