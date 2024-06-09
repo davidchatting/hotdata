@@ -47,3 +47,4 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
 
+cp.exec('raspi-gpio set 4 op', (err, stdout, sterr) => {})
