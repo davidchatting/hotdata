@@ -25,7 +25,7 @@ const workRateInterval = 500
 const stressInterval = 5000
 
 let serverTemperature = 0
-const targetAmbientTemperature = 48
+const targetAmbientTemperature = 36
 const userWorkThresholdForFan = 0.2
 
 let serverOnline = undefined
